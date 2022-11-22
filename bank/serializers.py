@@ -9,5 +9,5 @@ class CurrencySerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        name = Category
+        model = Category
         fields = ('id','name')
