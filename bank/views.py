@@ -3,14 +3,17 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
-from bank.models import Category, Currency
-from bank.serializers import CategorySerializer, CurrencySerializer
+from bank.models import Category, Currency, Transactions
+from bank.serializers import CategorySerializer, CurrencySerializer, ReadTransactionSerializer, WriteTransactionSerializer
 
 
 class CurrencyListAPIView(ListAPIView):
     queryset = Currency.objects.all()
     serializer_class = CurrencySerializer
+    pagination_class = None
 
 # @api_view(['GET'])
 # def currencies(request):
@@ -22,3 +25,16 @@ class CurrencyListAPIView(ListAPIView):
 class CategoryModelViewSet(ModelViewSet):
     queryset =Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = None
+
+class TransactionModelViewSet(ModelViewSet):
+    queryset = Transactions.objects.select_related("currency", "category")
+    filter_backends = (SearchFilter, OrderingFilter, DjangoFilterBackend,)
+    search_fields = ('description',)
+    ordering_fields = ('amount', 'date',)
+    filterset_fields = ('currency__code',)
+    
+    def get_serializer_class(self):
+        if self.action in ("list", "retrive"):
+            return ReadTransactionSerializer
+        return WriteTransactionSerializer
